@@ -8,7 +8,7 @@ export class ProjectController {
         const project = new Project(req.body)
         try {
             await project.save()
-            HttpResponse.OK(res, project)
+            HttpResponse.OK(res, "Proyecto creado correctamente")
         } catch (error) {
             HttpResponse.Error(res, error)
         }
@@ -26,7 +26,7 @@ export class ProjectController {
             const {id} = req.params
             const project= await (await Project.findById(id)).populate('tasks')
             if (!project) {
-                return HttpResponse.NotFound(res, 'Producto no Encontrado en la Base de Datos')
+                return HttpResponse.NotFound(res, 'Proyecto no Encontrado en la Base de Datos')
             }
             HttpResponse.OK(res, project)
         } catch (error) {
@@ -40,7 +40,7 @@ export class ProjectController {
             const project = await Project.findById(id)
             
             if (!project) {
-                return HttpResponse.NotFound(res, 'Producto no Encontrado en la Base de Datos')
+                return HttpResponse.NotFound(res, 'Proyecto no Encontrado en la Base de Datos')
             }
             project.clientName = req.body.clientName
             project.projectName = req.body.projectName

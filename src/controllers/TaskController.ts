@@ -8,10 +8,9 @@ export class TaskController {
         try {
             const task = new Task(req.body)
             task.project = req.project.id
-            console.log(task.id)
             req.project.tasks.push(task.id)
             await Promise.allSettled([task.save(), req.project.save()])
-            HttpResponse.OK(res, task)
+            HttpResponse.OKPERSONALIZADO(res, "Tarea creada correctamente")
         } catch (error) {
             console.log(error)
             HttpResponse.Error(res, error)
