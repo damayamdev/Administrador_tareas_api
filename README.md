@@ -8,6 +8,11 @@
 - Se instala pnpm i -D nodemon ts-node typescript
 - Se instala pnpm i colors
 - Se instala pnpm i express-validator
+- Se instala pnpm i cors
+- Se instala pnpm i bcrypt
+- Se instala pnpm i --save-dev @types/bcrypt
+- Se instala pnpm i nodemailer
+- Se instala pnpm i -D @types/nodemailer
 
 Mongoose es un *ODM* para Node.js
 

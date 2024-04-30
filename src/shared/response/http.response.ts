@@ -5,6 +5,7 @@ export enum HttpStatus {
     NOT_FOUND = 404,
     ANAUTHORIZED = 401,
     FORBIDDEN = 403,
+    CONFLICT = 409,
     INTERNAL_SERVER_ERROR = 500
 }
 
@@ -17,7 +18,7 @@ export class HttpResponse {
         })
     }
 
-    static OKPERSONALIZADO(res: Response, msg?: any): Response {
+    static OKPersonalizado(res: Response, msg?: any): Response {
         return res.status(HttpStatus.OK).json({
             httpStatusCode: HttpStatus.OK,
             statusMsg: 'Success',
@@ -53,6 +54,14 @@ export class HttpResponse {
         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
             httpStatusCode: HttpStatus.INTERNAL_SERVER_ERROR,
             statusMsg: 'Internal server error',
+            error: data
+        })
+    }
+
+    static Personalizado(code: HttpStatus, statusMsg: string ,res: Response, data?: any): Response {
+        return res.status(code).json({
+            httpStatusCode: code,
+            statusMsg: statusMsg,
             error: data
         })
     }
