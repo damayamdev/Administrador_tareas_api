@@ -13,6 +13,8 @@
 - Se instala pnpm i --save-dev @types/bcrypt
 - Se instala pnpm i nodemailer
 - Se instala pnpm i -D @types/nodemailer
+- Se instala pnpm i jsonwebtoken
+- Se instala pnpm i -D @types/jsonwebtoken
 
 Mongoose es un *ODM* para Node.js
 

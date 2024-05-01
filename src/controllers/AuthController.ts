@@ -5,6 +5,7 @@ import { checkPassword, hashPassword } from '../utils/auth'
 import Token from '../models/Token'
 import { generateToken } from '../utils/token'
 import { AuthEmail } from '../emails/AuthEmail'
+import { generateJWT } from '../utils/jwt'
 
 export class AuthController {
 
@@ -26,7 +27,7 @@ export class AuthController {
 
             AuthEmail.sendConfirmationEmail({
                 email: user.email,
-                name: user.email,
+                name: user.name,
                 token: token.token
             })
 
@@ -41,7 +42,7 @@ export class AuthController {
         try {
             const { token } = req.body
 
-            const tokenExists = await Token.findOne({token})
+            const tokenExists = await Token.findOne({ token })
 
             if (!tokenExists) {
                 return HttpResponse.NotFound(res, "El token no es válido")
@@ -61,9 +62,9 @@ export class AuthController {
     static login = async (req: Request, res: Response) => {
         try {
 
-            const {email, password} = req.body
+            const { email, password } = req.body
 
-            const user = await User.findOne({email})
+            const user = await User.findOne({ email })
             if (!user) {
                 return HttpResponse.NotFound(res, "Usuario no encontrado")
             }
@@ -89,7 +90,104 @@ export class AuthController {
                 return HttpResponse.Unauthorized(res, "La Contraseña no es correcta")
             }
 
-            return HttpResponse.OKPersonalizado(res, 'autenticado')
+            const token = generateJWT({id: user._id})
+
+            return HttpResponse.OKPersonalizado(res, token)
+        } catch (error) {
+            return HttpResponse.Error(res, error)
+        }
+    }
+
+    static requestConfirmationCode = async (req: Request, res: Response) => {
+        try {
+            const { email } = req.body
+
+            const user = await User.findOne({ email })
+            if (!user) {
+                return HttpResponse.NotFound(res, "No existe un usuario con el e-mail ")
+            }
+
+            if (user.confirmed) {
+                return HttpResponse.Personalizado(HttpStatus.CONFLICT, "Conflict", res, "El usuario ya esta confirmado ")
+            }
+
+            const token = new Token()
+            token.token = generateToken()
+            token.user = user.id
+
+            AuthEmail.sendConfirmationEmail({
+                email: user.email,
+                name: user.name,
+                token: token.token
+            })
+
+            await Promise.allSettled([user.save(), token.save()])
+            return HttpResponse.OKPersonalizado(res, "Se envió un nuevo token a tu e-mail")
+        } catch (error) {
+            return HttpResponse.Error(res, error)
+        }
+    }
+
+    static forgotPassword = async (req: Request, res: Response) => {
+        try {
+            const { email } = req.body
+
+            const user = await User.findOne({ email })
+            if (!user) {
+                return HttpResponse.NotFound(res, "No existe un usuario con el e-mail ")
+            }
+
+            const token = new Token()
+            token.token = generateToken()
+            token.user = user.id
+
+            AuthEmail.sendPasswordResetToken({
+                email: user.email,
+                name: user.name,
+                token: token.token
+            })
+
+            await token.save()
+            return HttpResponse.OKPersonalizado(res, "Revisa tu email para instrucciones")
+        } catch (error) {
+            return HttpResponse.Error(res, error)
+        }
+    }
+
+    static validaToken = async (req: Request, res: Response) => {
+        try {
+            const { token } = req.body
+
+            const tokenExists = await Token.findOne({ token })
+
+            if (!tokenExists) {
+                return HttpResponse.NotFound(res, "El token no es válido")
+            }
+
+
+            return HttpResponse.OKPersonalizado(res, "Token válido, Define tu nueva contraseña")
+        } catch (error) {
+            return HttpResponse.Error(res, error)
+        }
+    }
+
+    static updatePasswordWithToken = async (req: Request, res: Response) => {
+        try {
+            const { token } = req.params
+            const { password } = req.body
+
+            const tokenExists = await Token.findOne({ token })
+
+            if (!tokenExists) {
+                return HttpResponse.NotFound(res, "El token no es válido")
+            }
+
+            const user = await User.findById(tokenExists.user)
+            user.password = await hashPassword(password)
+
+            await Promise.allSettled([user.save(), tokenExists.deleteOne()])
+
+            return HttpResponse.OKPersonalizado(res, "La contraseña se cambió exitosamente")
         } catch (error) {
             return HttpResponse.Error(res, error)
         }
