@@ -7,6 +7,7 @@ export class ProjectController {
     static createProject = async (req: Request, res: Response) => {
         const project = new Project(req.body)
         try {
+            project.manager = req.user.id
             await project.save()
             return HttpResponse.OK(res, "Proyecto creado correctamente")
         } catch (error) {
@@ -15,7 +16,11 @@ export class ProjectController {
     }
     static getAllProjects = async (req: Request, res: Response) => {
         try {
-            const projects = await Project.find({})
+            const projects = await Project.find({
+                $or: [
+                    {manager: {$in: req.user.id}}
+                ]
+            })
             return HttpResponse.OK(res, projects)
         } catch (error) {
             return HttpResponse.Error(res, error)
@@ -27,6 +32,9 @@ export class ProjectController {
             const project= await (await Project.findById(id)).populate('tasks')
             if (!project) {
                 return HttpResponse.NotFound(res, 'Proyecto no Encontrado en la Base de Datos')
+            }
+            if (project.manager.toString() !== req.user.id.toString()) {
+                return HttpResponse.NotFound(res, 'Acción no válida')
             }
             return HttpResponse.OK(res, project)
         } catch (error) {
@@ -41,6 +49,9 @@ export class ProjectController {
             
             if (!project) {
                 return HttpResponse.NotFound(res, 'Proyecto no Encontrado en la Base de Datos')
+            }
+            if (project.manager.toString() !== req.user.id.toString()) {
+                return HttpResponse.NotFound(res, 'Solo el Manager puede actualizar un projecto')
             }
             project.clientName = req.body.clientName
             project.projectName = req.body.projectName
@@ -59,6 +70,9 @@ export class ProjectController {
             const project = await Project.findById(id)
             if (!project) {
                 return HttpResponse.NotFound(res, 'Proyecto no Encontrado en la Base de Datos')
+            }
+            if (project.manager.toString() !== req.user.id.toString()) {
+                return HttpResponse.NotFound(res, 'Solo el Manager puede eliminar un projecto')
             }
             await project.deleteOne()
             return HttpResponse.OKPersonalizado(res, 'Proyecto Eliminado Correctamente')

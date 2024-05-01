@@ -192,4 +192,12 @@ export class AuthController {
             return HttpResponse.Error(res, error)
         }
     }
+
+    static user = async (req: Request, res: Response) => {
+        try {
+            return HttpResponse.OK(res, req.user)
+        } catch (error) {
+            return HttpResponse.Error(res, error)
+        }
+    }
 }
