@@ -18,7 +18,8 @@ export class ProjectController {
         try {
             const projects = await Project.find({
                 $or: [
-                    {manager: {$in: req.user.id}}
+                    {manager: {$in: req.user.id}},
+                    {team: {$in: req.user.id}}
                 ]
             })
             return HttpResponse.OK(res, projects)
@@ -33,7 +34,7 @@ export class ProjectController {
             if (!project) {
                 return HttpResponse.NotFound(res, 'Proyecto no Encontrado en la Base de Datos')
             }
-            if (project.manager.toString() !== req.user.id.toString()) {
+            if (project.manager.toString() !== req.user.id.toString() && !project.team.includes(req.user.id)) {
                 return HttpResponse.NotFound(res, 'Acción no válida')
             }
             return HttpResponse.OK(res, project)

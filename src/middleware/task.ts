@@ -36,3 +36,14 @@ export function taskBelongsToProject(req: Request, res: Response, next: NextFunc
         HttpResponse.Error(res, error)
     }
 }
+
+export function hasAuthorization(req: Request, res: Response, next: NextFunction) {
+    try {
+        if (req.user.id.toString() !== req.project.manager.toString()) {
+            return HttpResponse.NotFound(res, 'Acción no válida')
+        }
+        next()
+    } catch (error) {
+        HttpResponse.Error(res, error)
+    }
+}
