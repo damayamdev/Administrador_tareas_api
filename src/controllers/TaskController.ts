@@ -30,8 +30,18 @@ export class TaskController {
 
     static getTaskById = async (req: Request, res: Response) => {
         try {
-            return HttpResponse.OK(res, req.task)
+            const task = await Task.findById(req.task.id)
+            .populate({
+                path: 'completedBy.user',
+                select: 'id name email'
+            })
+            .populate({
+                path: 'notes',
+                populate: {path: 'createdBy', select: 'id name email'}
+            })
+            return HttpResponse.OK(res, task)
         } catch (error) {
+            console.error(error)
             return HttpResponse.Error(res, error)
         }
     }
@@ -60,8 +70,13 @@ export class TaskController {
 
     static updateStatus = async (req: Request, res: Response) => {
         try {
-            const {status} = req.body
+            const { status } = req.body
             req.task.status = status
+            const data = {
+                user: req.user.id,
+                status
+            }
+            req.task.completedBy.push(data)
             await req.task.save()
             return HttpResponse.OKPersonalizado(res, 'Estado Actualizado')
         } catch (error) {

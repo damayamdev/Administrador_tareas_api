@@ -1,4 +1,4 @@
-import mongoose, {Schema, Document, Types} from 'mongoose'
+import mongoose, { Schema, Document, Types } from 'mongoose'
 
 const taskStatus = {
     PENDING: 'pending',
@@ -14,28 +14,53 @@ export interface ITask extends Document {
     description: string
     project: Types.ObjectId
     status: TaskStatus
+    completedBy: {
+        user: Types.ObjectId,
+        status: TaskStatus
+    }[],
+    notes: Types.ObjectId[]
 }
 
 const TaskShema: Schema = new Schema({
-    name:{
+    name: {
         type: String,
         trim: true,
         required: true
     },
-    description:{
+    description: {
         type: String,
         trim: true,
         required: true
     },
-    project:{
+    project: {
         type: Types.ObjectId,
         ref: 'Project'
     },
-    status:{
+    status: {
         type: String,
         enum: Object.values(taskStatus),
         default: taskStatus.PENDING
-    }
+    },
+    completedBy: [
+        {
+            user: {
+                type: Types.ObjectId,
+                ref: 'User',
+                default: null
+            },
+            status: {
+                type: String,
+                enum: Object.values(taskStatus),
+                default: taskStatus.PENDING
+            },
+        }
+    ],
+    notes: [
+        {
+            type: Types.ObjectId,
+            ref: 'Note'
+        }
+    ]
 }, {
     timestamps: true
 })

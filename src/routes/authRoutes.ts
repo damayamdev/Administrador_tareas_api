@@ -65,9 +65,36 @@ router.post('/update-password/:token',
     AuthController.updatePasswordWithToken
 )
 
+router.use(authenticate)
+
 router.get('/user',
-    authenticate,
     AuthController.user
+)
+
+router.put('/profile',
+    body('name').notEmpty().withMessage('El nombre no puede ir vacio'),
+    body('email').isEmail().withMessage('E-mail no válido'),
+    handleInputErrors,
+    AuthController.updateProfile
+)
+
+router.post('/update-password',
+    body('current_password').notEmpty().withMessage('La nueva contraseña es obligatoria'),
+    body('password').isLength({ min: 8 }).withMessage('El password es muy corto, minimo 8 caracteres'),
+    body('password_confirmation').custom((value, { req }) => {
+        if (value !== req.body.password) {
+            throw new Error('Los Password no son iguales')
+        }
+        return true
+    }),
+    handleInputErrors,
+    AuthController.updateCurrentUserPassword
+)
+
+router.post('/check-password',
+    body('password').notEmpty().withMessage('La nueva contraseña es obligatoria'),
+    handleInputErrors,
+    AuthController.checkPassword
 )
 
 export default router

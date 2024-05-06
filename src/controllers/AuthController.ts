@@ -200,4 +200,54 @@ export class AuthController {
             return HttpResponse.Error(res, error)
         }
     }
+
+    static updateProfile = async (req: Request, res: Response) => {
+        try {
+            const {name, email} = req.body
+
+            const userExists = await User.findOne({ email })
+            if (userExists && userExists.id.toString() !== req.user.id.toString()) {
+                return HttpResponse.Personalizado(HttpStatus.CONFLICT, "Conflict", res, "El e-mail ya se encuentra registrado en la base de datos")
+            } 
+
+            req.user.name = name
+            req.user.email = email
+            //req.user.confirmed = false
+            await req.user.save()
+            return HttpResponse.OKPersonalizado(res, "Perfil actualizado correctamente")
+        } catch (error) {
+            return HttpResponse.Error(res, error)
+        }
+    }
+    
+    static updateCurrentUserPassword = async (req: Request, res: Response) => {
+        const {current_password, password} = req.body
+        try {
+            const user = await User.findById(req.user.id)
+            const isPasswordCorrect = await checkPassword(current_password, user.password)
+            if (!isPasswordCorrect) {
+                return HttpResponse.Personalizado(HttpStatus.ANAUTHORIZED, "Anauthorized", res, "La contraseña actual es incorrecta")
+            } 
+            user.password = await hashPassword(password)
+            await user.save()
+            return HttpResponse.OKPersonalizado(res, "La contraseña se modificó correctamente")
+        } catch (error) {
+            return HttpResponse.Error(res, error)
+        }
+
+    }
+
+    static checkPassword = async (req: Request, res: Response) => {
+        const {password} = req.body
+        try {
+            const user = await User.findById(req.user.id)
+            const isPasswordCorrect = await checkPassword(password, user.password)
+            if (!isPasswordCorrect) {
+                return HttpResponse.Personalizado(HttpStatus.ANAUTHORIZED, "Anauthorized", res, "La contraseña actual es incorrecta")
+            } 
+            return HttpResponse.OKPersonalizado(res, "La contraseña es correcta")
+        } catch (error) {
+            return HttpResponse.Error(res, error)
+        }
+    }
 }

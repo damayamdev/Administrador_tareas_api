@@ -1,6 +1,5 @@
 import { Router } from 'express'
 import { body, param } from 'express-validator'
-
 import { ProjectController } from '../controllers/ProjectController'
 import { handleInputErrors } from '../middleware/validation'
 import { TaskController } from '../controllers/TaskController'
@@ -8,6 +7,7 @@ import { projectExists } from '../middleware/project'
 import { hasAuthorization, taskBelongsToProject, taskExists } from '../middleware/task'
 import { authenticate } from '../middleware/auth'
 import { TeamMemberController } from '../controllers/TeamController'
+import { NoteController } from '../controllers/NoteController'
 
 const router: Router = Router()
 
@@ -119,6 +119,27 @@ router.get('/:projectId/team',
     TeamMemberController.getProjectTeam
 )
 
+router.post('/:projectId/tasks/:taskId/notes',
+    param('projectId').isMongoId().withMessage('El Identificador del proyecto no es Válido'),
+    param('taskId').isMongoId().withMessage('El Identificador de la tarea no es Válida'),
+    body('content').notEmpty().withMessage('La Nota de la tarea es obligatoria'),
+    handleInputErrors,
+    NoteController.createNote
+)
 
+router.get('/:projectId/tasks/:taskId/notes',
+    param('projectId').isMongoId().withMessage('El Identificador del proyecto no es Válido'),
+    param('taskId').isMongoId().withMessage('El Identificador de la tarea no es Válida'),
+    handleInputErrors,
+    NoteController.getTaskNotes
+)
+
+router.delete('/:projectId/tasks/:taskId/notes/:noteId',
+    param('projectId').isMongoId().withMessage('El Identificador del proyecto no es Válido'),
+    param('taskId').isMongoId().withMessage('El Identificador de la tarea no es Válida'),
+    param('noteId').isMongoId().withMessage('El Identificador del comentario no es Válida'),
+    handleInputErrors,
+    NoteController.deleteNote
+)
 
 export default router
