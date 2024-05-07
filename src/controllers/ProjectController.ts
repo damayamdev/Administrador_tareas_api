@@ -43,22 +43,12 @@ export class ProjectController {
         } 
     }
     static updateProjectById = async (req: Request, res: Response) => {
-        const {id} = req.params
         try {
-
-            const project = await Project.findById(id)
+            req.project.clientName = req.body.clientName
+            req.project.projectName = req.body.projectName
+            req.project.description = req.body.description
             
-            if (!project) {
-                return HttpResponse.NotFound(res, 'Proyecto no Encontrado en la Base de Datos')
-            }
-            if (project.manager.toString() !== req.user.id.toString()) {
-                return HttpResponse.NotFound(res, 'Solo el Manager puede actualizar un projecto')
-            }
-            project.clientName = req.body.clientName
-            project.projectName = req.body.projectName
-            project.description = req.body.description
-            
-            await project.save()
+            await req.project.save()
             return HttpResponse.OKPersonalizado(res, 'Proyecto Actualizado Correctamente')
 
         } catch (error) {
@@ -66,16 +56,8 @@ export class ProjectController {
         } 
     }
     static deleteProjectById = async (req: Request, res: Response) => {
-        const {id} = req.params
         try {
-            const project = await Project.findById(id)
-            if (!project) {
-                return HttpResponse.NotFound(res, 'Proyecto no Encontrado en la Base de Datos')
-            }
-            if (project.manager.toString() !== req.user.id.toString()) {
-                return HttpResponse.NotFound(res, 'Solo el Manager puede eliminar un projecto')
-            }
-            await project.deleteOne()
+            await req.project.deleteOne()
             return HttpResponse.OKPersonalizado(res, 'Proyecto Eliminado Correctamente')
 
         } catch (error) {
