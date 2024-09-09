@@ -4,8 +4,8 @@ import { HttpResponse, HttpStatus } from '../shared/response/http.response'
 import { checkPassword, hashPassword } from '../utils/auth'
 import Token from '../models/Token'
 import { generateToken } from '../utils/token'
-import { AuthEmail } from '../emails/AuthEmail'
 import { generateJWT } from '../utils/jwt'
+import { PlantillaAuthEmail } from '../emails/PlantillaAuthEmail'
 
 export class AuthController {
 
@@ -25,11 +25,18 @@ export class AuthController {
             token.token = generateToken()
             token.user = user.id
 
-            AuthEmail.sendConfirmationEmail({
-                email: user.email,
-                name: user.name,
-                token: token.token
-            })
+            PlantillaAuthEmail.main(
+                {
+                    email: user.email,
+                    name: user.name,
+                    token: token.token,
+                    mensaje: "Confirma tu cuenta",
+                    mensaje2: "Has creado tu cuenta en UpTask, ya casi esta todo listo, solo debes confirmar tu cuenta.",
+                    link:"confirm-account"
+                }
+            )
+
+
 
             await Promise.allSettled([user.save(), token.save()])
             return HttpResponse.OKPersonalizado(res, "Cuenta creada, revisa tu email para confirmarla")
@@ -75,11 +82,16 @@ export class AuthController {
                 token.token = generateToken()
                 await token.save()
 
-                AuthEmail.sendConfirmationEmail({
-                    email: user.email,
-                    name: user.name,
-                    token: token.token
-                })
+                PlantillaAuthEmail.main(
+                    {
+                        email: user.email,
+                        name: user.name,
+                        token: token.token,
+                        mensaje: "Confirma tu cuenta",
+                        mensaje2: "Has creado tu cuenta en UpTask, ya casi esta todo listo, solo debes confirmar tu cuenta.",
+                        link:"confirm-account"
+                    }
+                )
 
                 return HttpResponse.Unauthorized(res, "La cuenta no ha sido confirmada, hemos enviado un e-mail de confirmación")
             }
@@ -115,11 +127,16 @@ export class AuthController {
             token.token = generateToken()
             token.user = user.id
 
-            AuthEmail.sendConfirmationEmail({
-                email: user.email,
-                name: user.name,
-                token: token.token
-            })
+            PlantillaAuthEmail.main(
+                {
+                    email: user.email,
+                    name: user.name,
+                    token: token.token,
+                    mensaje: "Confirma tu cuenta",
+                    mensaje2: "Has creado tu cuenta en UpTask, ya casi esta todo listo, solo debes confirmar tu cuenta.",
+                    link:"confirm-account"
+                }
+            )
 
             await Promise.allSettled([user.save(), token.save()])
             return HttpResponse.OKPersonalizado(res, "Se envió un nuevo token a tu e-mail")
@@ -140,13 +157,13 @@ export class AuthController {
             const token = new Token()
             token.token = generateToken()
             token.user = user.id
-
-            AuthEmail.sendPasswordResetToken({
-                email: user.email,
-                name: user.name,
-                token: token.token
-            })
-
+            PlantillaAuthEmail.main({
+                    email: user.email,
+                    name: user.name,
+                    token: token.token,
+                    mensaje: "Reestablecer contraseña",
+                    link: "new-password"
+                })
             await token.save()
             return HttpResponse.OKPersonalizado(res, "Revisa tu email para instrucciones")
         } catch (error) {
